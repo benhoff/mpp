@@ -183,8 +183,17 @@ static MPP_RET os_allocator_drm_open(void **ctx, size_t alignment, MppAllocFlagT
 
     for (i = 0; i < (RK_S32)MPP_ARRAY_ELEMS(dev_drm); i++) {
         fd = open(dev_drm[i], O_RDWR | O_CLOEXEC);
-        if (fd > 0)
+        if (fd > 0) {
+
+            if (strcmp(dev_drm[i], "/dev/dri/card0") == 0) {
+                int ret = drm_ioctl(fd, DRM_IOCTL_DROP_MASTER, 0);
+                if (ret < 0) {
+                    mpp_err_f("Drop master on %s failed!\n", dev_drm[i]);
+                }
+            }
+
             break;
+        }
     }
 
     if (fd < 0) {
